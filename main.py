@@ -41,7 +41,7 @@ def cipher(message, key, character_set):
 	return message_result, whiches_group
 
 
-def try_decipher_char(char_ciphered, key_elem_correct, key_elem_proposed, char_groups, index_group_candidates):
+def try_decipher_char(char_ciphered, key_solution, key_proposed, char_groups, index_group_candidates):
 
 	character_set = ''.join(char_groups)
 
@@ -54,10 +54,10 @@ def try_decipher_char(char_ciphered, key_elem_correct, key_elem_proposed, char_g
 	char_from_index = list(character_set)
 	char_set_len = len(character_set)
 	index_char_ciphered = index_from_char[char_ciphered]
-	index_char_clear = (index_char_ciphered - key_elem_correct + char_set_len) % char_set_len
+	index_char_clear = (index_char_ciphered - key_solution + char_set_len) % char_set_len
 	char_clear = char_from_index[index_char_clear]
 
-	if key_elem_correct == key_elem_proposed:
+	if key_solution == key_proposed:
 		return char_clear
 
 	# La clé pour le caractère n'est pas la bonne. On redécale avec la clé proposée.
@@ -70,37 +70,58 @@ def try_decipher_char(char_ciphered, key_elem_correct, key_elem_proposed, char_g
 	try:
 		index_char_clear = character_set_restricted.index(char_clear)
 	except:
-		print("Not supposed to happen. char_clear not in group_candidates. char_clear : " + char_clear + " char_groups : " + char_groups + " index_group_candidates : " + index_group_candidates)
+		print("Not supposed to happen. char_clear not in group_candidates. char_clear :", char_clear, "char_groups :", char_groups, "index_group_candidates :", index_group_candidates)
 		raise
-	index_char_uncorrect = (index_char_clear + key_elem_correct - key_elem_proposed + char_set_len) % char_set_len
+	index_char_uncorrect = (index_char_clear + key_solution - key_proposed + char_set_len) % char_set_len
 	char_uncorrect = character_set_restricted[index_char_uncorrect]
 	return char_uncorrect
 
 
-def try_decipher(message_ciphered, key_correct, key_proposed, char_groups):
+def create_index_group_candidates(which_group, key_correct_offset_backw, key_correct_offset_forw, nb_groups):
+	index_group_candidates = [ which_group ]
+	if not key_correct_offset_backw:
+		index_suppl = (which_group - 1 + nb_groups) % nb_groups
+		index_group_candidates.append(index_suppl)
+	if not key_correct_offset_forw:
+		index_suppl = (which_group + 1) % nb_groups
+		index_group_candidates.append(index_suppl)
+	return index_group_candidates
 
-	if len(key_correct) != len(key_proposed):
-		raise Exception("Not supposed to happen. key_correct and key_proposed should have same length.")
 
-	# TODO
-	index_group_candidates = [ 0, 1, 2 ]
+def try_decipher(message_ciphered, keys_solution, keys_proposed, char_groups, whiches_group):
 
-	nb_repeat_key = len(message_ciphered) // len(key_correct) + 1
-	repeated_key_correct = key_correct * nb_repeat_key
-	repeated_key_proposed = key_proposed * nb_repeat_key
+	if len(keys_solution) != len(keys_proposed):
+		raise Exception("Not supposed to happen. keys_solution and keys_proposed should have same length.")
+
+	keys_correct = [ key_solution == key_proposed for (key_solution, key_proposed) in zip (keys_solution, keys_proposed) ]
+	keys_correct_offset_backw = keys_correct[1:] + [ keys_correct[0] ]
+	keys_correct_offset_forw = [ keys_correct[-1] ] + keys_correct[:-1]
+
+	# TODO : un itérateur qui loope à l'infini sur une liste
+	nb_repeat_key = len(message_ciphered) // len(keys_solution) + 1
+	repeated_keys_solution = keys_solution * nb_repeat_key
+	repeated_keys_proposed = keys_proposed * nb_repeat_key
+	repeated_keys_correct_offset_backw = keys_correct_offset_backw * nb_repeat_key
+	repeated_keys_correct_offset_forw = keys_correct_offset_forw * nb_repeat_key
+
+	index_groups_candidates = [
+		create_index_group_candidates(which_group, key_correct_offset_backw, key_correct_offset_forw, len(CHAR_GROUPS))
+		for (which_group, key_correct_offset_backw, key_correct_offset_forw)
+		in zip(whiches_group, repeated_keys_correct_offset_backw, repeated_keys_correct_offset_forw)
+	]
 
 	chars_maybe_deciphered = [
-		try_decipher_char(char_ciphered, key_elem_correct, key_elem_proposed, char_groups, index_group_candidates)
-		for char_ciphered, key_elem_correct, key_elem_proposed
-		in zip(message_ciphered, repeated_key_correct, repeated_key_proposed)
+		try_decipher_char(char_ciphered, key_solution, key_proposed, char_groups, index_group_candidates)
+		for char_ciphered, key_solution, key_proposed, index_group_candidates
+		in zip(message_ciphered, repeated_keys_solution, repeated_keys_proposed, index_groups_candidates)
 	]
 	return ''.join(chars_maybe_deciphered)
 
 
-message_clear = 'The quick brown duck duct-taped the ape'
+message_clear = 'The quick brown duck duct-taped the happy ape'
 
 
-key_correct = (4, 7, 5, 1, 2)
+keys_solution = (4, 7, 5, 1, 2)
 
 character_set = CHARACTER_SET_INITIAL
 
@@ -108,13 +129,16 @@ char_from_index = list(character_set)
 
 print(message_clear)
 
-message_ciphered, whiches_group = cipher(message_clear, key_correct, character_set)
+message_ciphered, whiches_group = cipher(message_clear, keys_solution, character_set)
 print(message_ciphered)
 print(whiches_group)
 
-key_proposed = (4, 7, 0, 1, 1)
-print(try_decipher(message_ciphered, key_correct, key_proposed, CHAR_GROUPS))
+keys_proposed = (0, 0, 0, 0, 0)
+print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
 
-key_proposed = (0, 0, 0, 0, 0)
-print(try_decipher(message_ciphered, key_correct, key_proposed, CHAR_GROUPS))
+keys_proposed = (4, 7, 0, 1, 1)
+print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
+
+keys_proposed = (4, 7, 5, 1, 1)
+print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
 
