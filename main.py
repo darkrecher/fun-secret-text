@@ -1,4 +1,9 @@
-print("pouet")
+"""
+python main.py --cipher msg="The quick brown duck duct-taped the happy ape" keys=4-7-5-1-2
+"""
+
+import sys
+import json
 
 
 CHAR_GROUP_1 = 'aeiouyAEIOUY ' # voyelles
@@ -15,19 +20,20 @@ def which_group(char):
 	for index_group, char_group in enumerate(CHAR_GROUPS):
 		if char in char_group:
 			return index_group
-	raise Exception("Char not in any char_group. Not supposed to happend. char : " + char)
+	raise Exception("Char not in any char_group. Not supposed to happen. char : " + char)
 
 
-def cipher(message, key, character_set):
+def cipher(message_clear, key, character_set):
 
 	index_from_char = {
 		char: index
 		for index, char
 		in enumerate(character_set)
 	}
+	char_from_index = list(character_set)
 
 	message_indexes = [ index_from_char[char] for char in message_clear ]
-	nb_repeat_key = len(message) // len(key) + 1
+	nb_repeat_key = len(message_clear) // len(key) + 1
 	repeated_key = key * nb_repeat_key
 	char_set_len = len(character_set)
 	message_offsetted = [
@@ -62,7 +68,7 @@ def try_decipher_char(char_ciphered, key_solution, key_proposed, char_groups, in
 
 	# La clé pour le caractère n'est pas la bonne. On redécale avec la clé proposée.
 	# Mais on redécale dans le group de caractère restreint.
-	# Ça renverra un caractère "pas si incorrecte que ça", au lieu de "totalement incorrect".
+	# Ça renverra un caractère "pas si incorrect que ça", au lieu de "totalement incorrect".
 
 	group_candidates = [ char_groups[index_group] for index_group in index_group_candidates ]
 	character_set_restricted = ''.join(group_candidates)
@@ -118,27 +124,66 @@ def try_decipher(message_ciphered, keys_solution, keys_proposed, char_groups, wh
 	return ''.join(chars_maybe_deciphered)
 
 
-message_clear = 'The quick brown duck duct-taped the happy ape'
+def generate_ciphered_data():
+
+	message_clear = None
+	str_keys = None
+	for arg in sys.argv[1:]:
+		if arg.startswith('msg='):
+			message_clear = arg[len('msg='):]
+		elif arg.startswith('keys='):
+			str_keys = arg[len('keys='):]
+	if message_clear is None or str_keys is None:
+		print("TODO. usage. main.py --cipher msg=bla_bla keys=5-9-7-2")
+		raise Exception("Missing argument(s).")
+
+	keys_solution = str_keys.split('-')
+	# TODO : checker valeurs numérique avant de faire planter
+	keys_solution = [ int(key) for key in keys_solution ]
+
+	character_set = CHARACTER_SET_INITIAL
+	message_ciphered, whiches_group = cipher(message_clear, keys_solution, character_set)
+
+	json_data = {
+		'message_ciphered': message_ciphered,
+		'infos': keys_solution,
+		'groups': whiches_group,
+		'additionnal_chars': 'TODO',
+	}
+	print(json.dumps(json_data))
 
 
-keys_solution = (4, 7, 5, 1, 2)
+def main():
 
-character_set = CHARACTER_SET_INITIAL
+	if '--cipher' in sys.argv[1:]:
 
-char_from_index = list(character_set)
+		generate_ciphered_data()
 
-print(message_clear)
+	else:
+		# TODO : porcasseries provisoire.
 
-message_ciphered, whiches_group = cipher(message_clear, keys_solution, character_set)
-print(message_ciphered)
-print(whiches_group)
+		message_clear = 'The quick brown duck duct-taped the happy ape'
 
-keys_proposed = (0, 0, 0, 0, 0)
-print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
 
-keys_proposed = (4, 7, 0, 1, 1)
-print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
+		keys_solution = (4, 7, 5, 1, 2)
 
-keys_proposed = (4, 7, 5, 1, 1)
-print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
+		character_set = CHARACTER_SET_INITIAL
 
+		print(message_clear)
+
+		message_ciphered, whiches_group = cipher(message_clear, keys_solution, character_set)
+		print(message_ciphered)
+		print(whiches_group)
+
+		keys_proposed = (0, 0, 0, 0, 0)
+		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
+
+		keys_proposed = (4, 7, 0, 1, 1)
+		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
+
+		keys_proposed = (4, 7, 5, 1, 1)
+		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
+
+
+if __name__ == '__main__':
+	main()
