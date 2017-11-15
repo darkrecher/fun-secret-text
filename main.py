@@ -1,5 +1,5 @@
 """
-python main.py --cipher msg="The quick brown duck duct-taped the happy ape" keys=4-7-5-1-2
+python main.py --cipher msg="The quick brown duck duct-taped the happy ape" keys=4-7-5-1-2 > game_data.json
 """
 
 import sys
@@ -148,9 +148,16 @@ def generate_ciphered_data():
 		'message_ciphered': message_ciphered,
 		'infos': keys_solution,
 		'groups': whiches_group,
-		'additionnal_chars': 'TODO',
+		'additional_chars': 'TODO',
 	}
 	print(json.dumps(json_data))
+
+
+def read_game_data_json():
+	with open('game_data.json', 'r', encoding='utf-8') as file_game_data_json:
+		game_data_json = file_game_data_json.read()
+	game_data = json.loads(game_data_json)
+	return game_data
 
 
 def main():
@@ -162,23 +169,16 @@ def main():
 	else:
 		# TODO : porcasseries provisoire.
 
-		message_clear = 'The quick brown duck duct-taped the happy ape'
-
-
-		keys_solution = (4, 7, 5, 1, 2)
-
 		character_set = CHARACTER_SET_INITIAL
-
-		print(message_clear)
-
-		message_ciphered, whiches_group = cipher(message_clear, keys_solution, character_set)
-		print(message_ciphered)
-		print(whiches_group)
+		game_data = read_game_data_json()
+		keys_solution = game_data['infos']
+		message_ciphered = game_data['message_ciphered']
+		whiches_group = game_data['groups']
 
 		keys_proposed = (0, 0, 0, 0, 0)
 		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
 
-		keys_proposed = (4, 7, 0, 1, 1)
+		keys_proposed = (4, 0, 5, 1, 1)
 		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
 
 		keys_proposed = (4, 7, 5, 1, 1)
