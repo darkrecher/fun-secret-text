@@ -238,6 +238,7 @@ def main():
 		keys_proposed = read_keys_proposed(len(keys_solution))
 
 		statements = game_data['statements']
+		len_statements = max([ len(statement) for statement in statements ])
 
 		print('')
 		print('-' * 50)
@@ -247,14 +248,17 @@ def main():
 			key_index_letter = chr(ord('A') + key_index)
 			key_proposed = keys_proposed[key_index]
 			statement = statements[key_index]
-			# TODO : ne pas écrire si la clé est 0. Mettre la clé actuelle à la fin. Si possible avec affichage par colonne.
-			print("%s : clé actuelle = %s. %s" % (key_index_letter, str(key_proposed), statement))
+			if key_proposed != 0:
+				print("%s : %s (clé actuelle : %s)" % (key_index_letter, statement.ljust(len_statements), str(key_proposed)))
+			else:
+				print("%s : %s" % (key_index_letter, statement))
 			print('')
 
 		# TODO : moche. Il faut faire un join.
 		print('-' * 50)
 		print('')
 
+		# TODO : mettre tout ça dans une fonction. Si les input foirent, on fait quand même un try_decipher
 		key_index_letter_end = chr(ord('A') - 1 + len(keys_solution))
 		key_index_letter = input("Indiquez la lettre correspondant à la question. (de A à %s) : " % key_index_letter_end)
 		if not key_index_letter:
