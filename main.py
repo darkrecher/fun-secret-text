@@ -1,5 +1,9 @@
 """
+
 python main.py --cipher msg="The quick brown duck duct-taped the happy ape" keys=4-7-5-1-2 > game_data.json
+
+python main.py --decipher key_index=C key_val=5
+
 """
 
 import sys
@@ -153,6 +157,27 @@ def generate_ciphered_data():
 	print(json.dumps(json_data))
 
 
+def get_key_elem_from_argv():
+	key_index = None
+	key_val = None
+	# TODO : checker valeurs numérique avant de faire planter
+	# TODO : checker que l'index est in-bounds.
+	for arg in sys.argv[1:]:
+		if arg.startswith('key_index='):
+			key_index = arg[len('key_index='):].upper()
+			if len(key_index) == 1 and ('A' <= key_index <= 'Z'):
+				key_index = ord(key_index) - ord('A')
+			else:
+				key_index = int(key_index)
+		elif arg.startswith('key_val='):
+			key_val = arg[len('key_val='):]
+			key_val = int(key_val)
+	if key_index is None or key_val is None:
+		print("TODO. usage. main.py --decipher key_index=B key_val=7")
+		raise Exception("Missing argument(s).")
+	return key_index, key_val
+
+
 def read_game_data_json():
 	with open('game_data.json', 'r', encoding='utf-8') as file_game_data_json:
 		game_data_json = file_game_data_json.read()
@@ -187,20 +212,26 @@ def main():
 
 		generate_ciphered_data()
 
-	else:
-		# TODO : porcasseries provisoire.
+	elif '--decipher' in sys.argv[1:]:
 
 		character_set = CHARACTER_SET_INITIAL
 		game_data = read_game_data_json()
 		keys_solution = game_data['infos']
 		message_ciphered = game_data['message_ciphered']
 		whiches_group = game_data['groups']
-
 		keys_proposed = read_keys_proposed(len(keys_solution))
-		#keys_proposed[2] = 42
+
+		(key_index, key_val) = get_key_elem_from_argv()
+		keys_proposed[key_index] = key_val
+
 		message_tried = try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group)
 		print(message_tried)
 		write_keys_proposed(keys_proposed)
+
+	else:
+
+		print("TODO. interactive mode.")
+
 
 if __name__ == '__main__':
 	main()
