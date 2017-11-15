@@ -230,7 +230,53 @@ def main():
 
 	else:
 
-		print("TODO. interactive mode.")
+		character_set = CHARACTER_SET_INITIAL
+		game_data = read_game_data_json()
+		keys_solution = game_data['infos']
+		message_ciphered = game_data['message_ciphered']
+		whiches_group = game_data['groups']
+		keys_proposed = read_keys_proposed(len(keys_solution))
+
+		statements = game_data['statements']
+
+		print('')
+		print('-' * 50)
+		print('')
+
+		for key_index in range(len(keys_solution)):
+			key_index_letter = chr(ord('A') + key_index)
+			key_proposed = keys_proposed[key_index]
+			statement = statements[key_index]
+			# TODO : ne pas écrire si la clé est 0. Mettre la clé actuelle à la fin. Si possible avec affichage par colonne.
+			print("%s : clé actuelle = %s. %s" % (key_index_letter, str(key_proposed), statement))
+			print('')
+
+		# TODO : moche. Il faut faire un join.
+		print('-' * 50)
+		print('')
+
+		key_index_letter_end = chr(ord('A') - 1 + len(keys_solution))
+		key_index_letter = input("Indiquez la lettre correspondant à la question. (de A à %s) : " % key_index_letter_end)
+		if not key_index_letter:
+			print("fail input.")
+			return
+		# TODO : if isdigit, prendre la valeur direct.
+		key_index_letter = key_index_letter[0].upper()
+		key_index = ord(key_index_letter) - ord('A')
+		if key_index < 0 or key_index >= len(keys_solution):
+			print("fail input. Il faut indiquer une lettre de A à %s" % key_index_letter_end)
+			return
+
+		key_val = input("Indiquez la réponse (un nombre) : ")
+		if not key_val.isdigit():
+			print("fail input. Il faut indiquer un nombre")
+			return
+
+		keys_proposed[key_index] = int(key_val)
+
+		message_tried = try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group)
+		print(message_tried)
+		write_keys_proposed(keys_proposed)
 
 
 if __name__ == '__main__':
