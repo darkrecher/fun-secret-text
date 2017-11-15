@@ -160,6 +160,27 @@ def read_game_data_json():
 	return game_data
 
 
+def read_keys_proposed(nb_keys):
+	try:
+		with open('keys_proposed.json', 'r', encoding='utf-8') as file_keys_proposed_json:
+			keys_proposed_json = file_keys_proposed_json.read()
+		keys_proposed = json.loads(keys_proposed_json)
+	# TODO : excepter des exceptions plus précises.
+	except Exception:
+		keys_proposed = [ 0, ] * nb_keys
+
+	if len(keys_proposed) != nb_keys:
+		raise Exception("Not supposed to happend. nb keys different. keys_proposed :", keys_proposed, "nb_keys :", nb_keys)
+
+	return keys_proposed
+
+
+def write_keys_proposed(keys_proposed):
+	keys_proposed_json = json.dumps(keys_proposed)
+	with open('keys_proposed.json', 'w', encoding='utf-8') as file_keys_proposed_json:
+			file_keys_proposed_json.write(keys_proposed_json)
+
+
 def main():
 
 	if '--cipher' in sys.argv[1:]:
@@ -175,15 +196,11 @@ def main():
 		message_ciphered = game_data['message_ciphered']
 		whiches_group = game_data['groups']
 
-		keys_proposed = (0, 0, 0, 0, 0)
-		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
-
-		keys_proposed = (4, 0, 5, 1, 1)
-		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
-
-		keys_proposed = (4, 7, 5, 1, 1)
-		print(try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group))
-
+		keys_proposed = read_keys_proposed(len(keys_solution))
+		#keys_proposed[2] = 42
+		message_tried = try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group)
+		print(message_tried)
+		write_keys_proposed(keys_proposed)
 
 if __name__ == '__main__':
 	main()
