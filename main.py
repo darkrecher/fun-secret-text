@@ -206,6 +206,30 @@ def write_keys_proposed(keys_proposed):
 			file_keys_proposed_json.write(keys_proposed_json)
 
 
+def get_key_to_change_from_input(keys_solution):
+
+	# TODO : passer en param le len(keys_solution), et non pas keys_solution.
+
+	key_index_letter_end = chr(ord('A') - 1 + len(keys_solution))
+	key_index_letter = input("Indiquez la lettre correspondant à la question. (de A à %s) : " % key_index_letter_end)
+	if not key_index_letter:
+		print("fail input.")
+		return None
+	# TODO : if isdigit, prendre la valeur direct.
+	key_index_letter = key_index_letter[0].upper()
+	key_index = ord(key_index_letter) - ord('A')
+	if key_index < 0 or key_index >= len(keys_solution):
+		print("fail input. Il faut indiquer une lettre de A à %s" % key_index_letter_end)
+		return None
+
+	key_val = input("Indiquez la réponse (un nombre) : ")
+	if not key_val.isdigit():
+		print("fail input. Il faut indiquer un nombre")
+		return None
+
+	return key_index, key_val
+
+
 def main():
 
 	if '--cipher' in sys.argv[1:]:
@@ -258,25 +282,13 @@ def main():
 		print('-' * 50)
 		print('')
 
-		# TODO : mettre tout ça dans une fonction. Si les input foirent, on fait quand même un try_decipher
-		key_index_letter_end = chr(ord('A') - 1 + len(keys_solution))
-		key_index_letter = input("Indiquez la lettre correspondant à la question. (de A à %s) : " % key_index_letter_end)
-		if not key_index_letter:
-			print("fail input.")
-			return
-		# TODO : if isdigit, prendre la valeur direct.
-		key_index_letter = key_index_letter[0].upper()
-		key_index = ord(key_index_letter) - ord('A')
-		if key_index < 0 or key_index >= len(keys_solution):
-			print("fail input. Il faut indiquer une lettre de A à %s" % key_index_letter_end)
-			return
+		info_key_to_change = get_key_to_change_from_input(keys_solution)
 
-		key_val = input("Indiquez la réponse (un nombre) : ")
-		if not key_val.isdigit():
-			print("fail input. Il faut indiquer un nombre")
-			return
-
-		keys_proposed[key_index] = int(key_val)
+		if info_key_to_change is not None:
+			key_index, key_val = info_key_to_change
+			keys_proposed[key_index] = int(key_val)
+		else:
+			print('')
 
 		message_tried = try_decipher(message_ciphered, keys_solution, keys_proposed, CHAR_GROUPS, whiches_group)
 		print(message_tried)
