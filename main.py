@@ -14,8 +14,8 @@ CHAR_GROUP_1 = 'aeiouyAEIOUY ' # voyelles
 CHAR_GROUP_2 = 'ckqbdptvfCKQBDPTVF' # consonnes 1
 CHAR_GROUP_3 = 'ghjlmnrswxzGHJLMNRSWXZ' # consonnes 2
 
-# TODO : ajout tiret à l'arrache
-CHAR_GROUPS = [ CHAR_GROUP_1 + '-', CHAR_GROUP_2, CHAR_GROUP_3 ]
+# TODO : ajout caractères à l'arrache
+CHAR_GROUPS = [ CHAR_GROUP_1 + '-,.', CHAR_GROUP_2, CHAR_GROUP_3 ]
 
 CHARACTER_SET_INITIAL = ''.join(CHAR_GROUPS)
 
