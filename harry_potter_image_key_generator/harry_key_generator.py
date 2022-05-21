@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import cv2
 
@@ -132,15 +134,58 @@ def build_harkey(harkey_num_id, harkey_elements, nb_img_per_elem):
             offset_xy = HARKEY_ELEM_OFFSETS[elem_name]
             blit_img(elem_img, harkey_img, offset_xy, byte_mask)
 
-        current_elem_index //= nb_img
+        harkey_num_id //= nb_img
 
     return harkey_img
 
 
-def main():
-    import random
+def make_linked_matrix(values, size_x, size_y):
+    linked_matrix_base = values.reshape((size_y, size_x))
+    print(linked_matrix_base)
+    linked_matrix_offsetted = np.concatenate(
+        [linked_matrix_base, np.zeros((size_y, 1), dtype=linked_matrix_base.dtype)],
+        axis=1,
+    )
+    linked_matrix_offsetted = linked_matrix_offsetted[:, 1:]
+    print(linked_matrix_offsetted)
+    linked_matrix_all = np.stack([linked_matrix_base, linked_matrix_offsetted], axis=-1)
+    linked_matrix_all = linked_matrix_all[:, :-1, :]
+    print()
+    print(linked_matrix_all)
+    print(linked_matrix_all.shape)
+    return linked_matrix_all
 
+
+def build_puzzle_num_ids():
+    random.seed("Alohomora")
+    num_ids = list(range(144))
+    random.shuffle(num_ids)
+    val_links_horiz = np.array(num_ids[: 144 // 2])
+    links_horiz = make_linked_matrix(val_links_horiz, 9, 8)
+    val_links_vertic = np.array(num_ids[144 // 2 :])
+    links_vertic = make_linked_matrix(val_links_vertic, 9, 8)
+    links_vertic = np.transpose(links_vertic, axes=(1, 0, 2))
+    print("transposed")
+    print(links_vertic)
+    print(links_vertic.shape)
+
+    for column in links_horiz:
+        print(" -".join(map(lambda x: str(x).rjust(11), column)))
+    print()
+    for column in links_vertic:
+        print(" -".join(map(lambda x: str(x).rjust(11), column)))
+    links_all = np.stack([links_horiz, links_vertic], axis=-1)
+    links_all = links_all.reshape(8, 8, 4)
+    print("the final link maps :")
+    for column in links_all:
+        print(" -".join(map(lambda x: str(x).rjust(20), column)))
+    print(links_all.shape)
+
+
+def main():
     print("coucou")
+    build_puzzle_num_ids()
+
     atlas_img = cv2.imread("harkeys.png")
     harkey_elements, nb_img_per_elem = prepare_harkey_elements(atlas_img)
     harkey = build_harkey(random.randrange(0, 144), harkey_elements, nb_img_per_elem)
