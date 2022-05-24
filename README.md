@@ -35,9 +35,11 @@ La position des clés dans le groupe de 4 est aléatoire. Dans l'exemple ci-dess
 
 Les planches sont disposées comme ceci :
 
-p_00 p_03 p_06 p_09
-p_01 p_04 p_07 p_10
-p_02 p_05 p_08 p_11
+```
+    p_00 p_03 p_06 p_09
+    p_01 p_04 p_07 p_10
+    p_02 p_05 p_08 p_11
+```
 
 Pour les planches p_02 p_05 p_08 p_11, les groupes de clés de la première ligne sont des doublons des groupes juste au-dessus (parce que j'ai codé mon script à l'arrache).
 
